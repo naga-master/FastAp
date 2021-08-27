@@ -1,5 +1,5 @@
-from PyQt5.QtCore import QSize, Qt
-from PyQt5.QtGui import QFont, QIcon, QPixmap, QTextBlock, QTextDocument
+from PyQt5.QtCore import QPoint, QRect, QSize, Qt
+from PyQt5.QtGui import QBrush, QColor, QFont, QIcon, QPainter, QPainterPath, QPixmap, QTextBlock, QTextDocument
 from PyQt5.QtWidgets import QAbstractItemView, QApplication, QDesktopWidget, QDockWidget, QFormLayout, QGridLayout, QHBoxLayout, QLabel, QLayout, QListView, QListWidget, QListWidgetItem, QMainWindow, QProgressBar, QPushButton, QSizePolicy, QVBoxLayout, QWidget
 import sys
 from typing import List
@@ -43,21 +43,51 @@ class centralwidget(QWidget):
         central_titlebar_layout.addLayout(buttons_layout, 0)
 
         correct_images_list = QListWidget(objectName='correctlistwidget')
+        
         first_images = QListWidgetItem(correct_images_list)
+        image_wrapping_widget = QWidget()        
+        image_frame = QVBoxLayout()
+        image_frame.setContentsMargins(0,0,0,0)
+        
         image_widget = QLabel()
-        pixmap = QPixmap('/home/alai/GUI-Dev/lobe-clone/Microsoft-Lobe.jpg')
+        image_prediction_widget = QLabel('Prediction', image_widget)
+        image_prediction_widget.setStyleSheet(
+            '''
+            background-color:#00ddb2;
+            border:none;
+            border-radius:7px;
+            color:white;
+            padding:8px;
+            font-size:20px;
+            font-weight: 400;
+            '''
+        )
+        image_prediction_widget.setFixedHeight(30)
+    
+        pixmap = QPixmap('/home/alai/GUI-Dev/lobe-clone/Lobe-Clone/Microsoft-Lobe.jpg')
         pixmap = pixmap.scaled(
-            QSize(pixmap.height(),pixmap.width()),
+            QSize(int(pixmap.height()*0.5),int(pixmap.width()*0.5)),
             Qt.KeepAspectRatio,
             Qt.SmoothTransformation
         )
-        image_widget.setPixmap(pixmap)
-        first_images.setSizeHint(image_widget.sizeHint())
-        correct_images_list.addItem(first_images)
-        correct_images_list.setItemWidget(first_images, image_widget)
         
-   
+
+        image_widget.setPixmap(pixmap)
+
+        image_frame.addWidget(image_widget)
+        #image_frame.addWidget(image_prediction_widget)
+        #image_prediction_widget.move(QPoint(0,0))
+        image_prediction_widget.setGeometry(QRect(10, int(pixmap.height() - (pixmap.height()*0.2)), 120, 150))
+
+        image_wrapping_widget.setLayout(image_frame)
+        first_images.setSizeHint(image_wrapping_widget.sizeHint())
+        
+        correct_images_list.addItem(first_images)
+        correct_images_list.setItemWidget(first_images, image_wrapping_widget)
         correct_images_list.setFocusPolicy(Qt.NoFocus)
+        correct_images_list.setFixedSize(correct_images_list.sizeHintForColumn(0) + 2 * correct_images_list.frameWidth(), correct_images_list.sizeHintForRow(0) * correct_images_list.count() + 2 * correct_images_list.frameWidth())
+        #correct_images_list.setMaximumWidth(pixmap.width())
+        
 
         central_layout.addLayout(central_titlebar_layout)
         central_layout.addWidget(correct_label)
@@ -129,11 +159,11 @@ class MainWindow(QMainWindow):
         #                    listwidget.sizeHintForRow(0) * listwidget.count() + 2 * listwidget.frameWidth())
 
         label = QListWidgetItem('Label', listwidget)
-        label.setIcon(QIcon('/home/alai/GUI-Dev/lobe-clone/edit.png'))
+        label.setIcon(QIcon('edit.png'))
         train = QListWidgetItem('Train', listwidget)
-        train.setIcon(QIcon('/home/alai/GUI-Dev/lobe-clone/tick_check_checked_checkbox_icon_177982.png'))
+        train.setIcon(QIcon('tick_check_checked_checkbox_icon_177982.png'))
         use = QListWidgetItem('Use', listwidget)
-        use.setIcon(QIcon('/home/alai/GUI-Dev/lobe-clone/3d-cube.png'))
+        use.setIcon(QIcon('3d-cube.png'))
         listwidget.setSpacing(2)
         listwidget.setFocusPolicy(Qt.NoFocus)
         listwidget.setMaximumHeight(listwidget.count()*60)

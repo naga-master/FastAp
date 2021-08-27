@@ -4,6 +4,11 @@ stylesheet = '''
     background-color : #000000;
 }
 
+QListView::item:selected {
+            border: 2px solid #6a6ea9;
+            border-radius: 15px;
+            color: white;
+        }
 
 #listwidget::item {
      padding: 10px;
