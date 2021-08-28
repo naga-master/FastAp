@@ -1,8 +1,8 @@
 import os
-from PyQt5.QtCore import QDir, QDirIterator, QPoint, QRect, QSize, QTimer, Qt, pyqtSlot
+from PyQt5.QtCore import QDir, QDirIterator, QPoint, QRect, QSize, QTimer, Qt, pyqtSignal, pyqtSlot
 from PyQt5.QtGui import QBrush, QColor, QFont, QFontMetrics, QIcon, QPainter, QPainterPath, QPixmap, QTextBlock, QTextDocument
 from PyQt5.QtWidgets import QAbstractItemView, QApplication, QDesktopWidget, QDockWidget, QFileDialog, QFormLayout, QGridLayout, QHBoxLayout, QLabel, QLayout, QListView, QListWidget, QListWidgetItem, QMainWindow, QProgressBar, QPushButton, QSizePolicy, QVBoxLayout, QWidget
-import sys
+import sys, glob
 from typing import List
 import style
 
@@ -15,6 +15,9 @@ class MainApp(QApplication):
 
 
 class centralwidget(QWidget):
+    file_count = pyqtSignal(str, int)
+    clear_progress = pyqtSignal(int)
+
     def __init__(self, parent=None) -> None:
         super(centralwidget,self).__init__(parent)
         self.widget()
@@ -75,11 +78,12 @@ class centralwidget(QWidget):
 
     @pyqtSlot()
     def on_choose_btn_clicked(self):
-
+        
         directory = QFileDialog.getExistingDirectory(
-            options=QFileDialog.DontUseNativeDialog
+            #options=QFileDialog.DontUseNativeDialog
         )
         if directory:
+            self.clear_progress.emit(0)
             self.start_loading(directory)
 
     @pyqtSlot()
@@ -108,12 +112,10 @@ class centralwidget(QWidget):
             image_widget = QLabel()
             image_wrapping_widget = QWidget()
             
-            
-            
             image_frame = QHBoxLayout()
             pixmap = QPixmap(filename)
             pixmap = pixmap.scaled(
-                QSize(int(pixmap.height()*0.3),int(pixmap.width()*0.3)),
+                QSize(int(pixmap.height()*0.2),int(pixmap.width()*0.2)),
                 Qt.KeepAspectRatio,
                 Qt.SmoothTransformation
             )
@@ -129,6 +131,7 @@ class centralwidget(QWidget):
 
             image_prediction_widget = QLabel(image_widget)
             
+            
             if image_prediction_widget.width()+100 < pixmap.width():
                 metrics = QFontMetrics(image_widget.font())
                 elided = metrics.elidedText(name, Qt.ElideRight, 70)
@@ -139,13 +142,13 @@ class centralwidget(QWidget):
                     border:none;
                     border-radius:7px;
                     color:white;
-                    padding:8px;
-                    font-size:20px;
+                    padding:3px;
+                    font-size:15px;
                     font-weight: 400;
                     '''
                 )
-                image_prediction_widget.setFixedHeight(30)
-                image_prediction_widget.setGeometry(QRect(10, int(pixmap.height() - (pixmap.height()*0.2)), 120, 150))
+                image_prediction_widget.setFixedHeight(20)
+                image_prediction_widget.setGeometry(QRect(10, int(pixmap.height() - (pixmap.height()*0.3)), 120, 150))
 
             image_widget.setPixmap(rounded)
             image_frame.addWidget(image_widget)
@@ -154,20 +157,26 @@ class centralwidget(QWidget):
             self.correct_images_list.addItem(images_list)
             self.correct_images_list.setItemWidget(images_list, image_wrapping_widget)
             
-
+    @pyqtSlot(str, int)
     def load_images(self, directory):
+        extensions = ['*.bmp', '*.gif', '*.jpg', '*.jpeg', '*.png', '*.pbm', '*.pgm', '*.ppm', '*.xbm', '*.xpm']
         it = QDirIterator(
             directory,
-            ["*.jpg", "*.png"],
+            extensions,
             QDir.Files,
             QDirIterator.Subdirectories,
         )
+        
+        total_files= [len(glob.glob(os.path.join(directory,ext),recursive=True)) for ext in extensions]
+        total_files = sum(total_files)
+        
+        files_count = 0
         while it.hasNext():
             filename = it.next()
+            files_count += 1
+            self.file_count.emit(str(files_count), total_files)
             yield filename
 
-        
-        
 class MainWindow(QMainWindow):
 
     def __init__(self, parent=None)-> None:
@@ -184,9 +193,11 @@ class MainWindow(QMainWindow):
         
 
     def _setlayout(self):
-        widget = centralwidget()
-        self.setCentralWidget(widget)
-        widget.setStyleSheet(
+        self.widget = centralwidget()
+        self.widget.file_count.connect(self.updateText)
+        self.widget.clear_progress.connect(self.clearprogress)
+        self.setCentralWidget(self.widget)
+        self.widget.setStyleSheet(
             '''
             font-family: Helvetica;
             font-weight: bold;
@@ -244,12 +255,11 @@ class MainWindow(QMainWindow):
         #images_count_list.setResizeMode(QListView.Adjust)
         #images_count_list.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         #images_count_list.setVerticalScrollMode(QAbstractItemView.ScrollPerPixel)
-        
-        
+                
         images_count_list.setSpacing(2)
         images_count_list.setFocusPolicy(Qt.NoFocus)
         
-        list_items = ['All Images', 'Fern', 'Madrone', 'Toyon']
+        list_items = ['All Images']
         for i in range(len(list_items)):
             images_count_widget = QWidget()
             images_count_layout = QFormLayout(objectName = 'allimages')
@@ -259,14 +269,15 @@ class MainWindow(QMainWindow):
             
             allimages.setFont(QFont('Helvetica'))
             
-            allimages_percentage = QLabel('80%', alignment= Qt.AlignRight)
-            allimages_percentage.setFont(QFont('Helvetica'))
-            allimages_bar = QProgressBar(objectName='imagescountbar')
-            allimages_bar.setFixedHeight(7)
-            allimages_bar.setTextVisible(False)
-            allimages_bar.setValue(80)
-            images_count_layout.addRow(allimages, allimages_percentage)
-            images_count_layout.addRow(allimages_bar)
+            self.allimages_percentage = QLabel('0', alignment= Qt.AlignRight)
+            self.allimages_percentage.setFont(QFont('Helvetica'))
+            
+            self.allimages_bar = QProgressBar(objectName='imagescountbar')
+            self.allimages_bar.setFixedHeight(7)
+            self.allimages_bar.setTextVisible(False)
+            self.allimages_bar.setValue(0)
+            images_count_layout.addRow(allimages, self.allimages_percentage)
+            images_count_layout.addRow(self.allimages_bar)
             images_count_widget.setLayout(images_count_layout)
 
             listwidget_item = QListWidgetItem(images_count_list)
@@ -295,7 +306,13 @@ class MainWindow(QMainWindow):
         side_bar.setLayout(menu_layout)
                 
         dock.setWidget(side_bar)
-        
+
+    def updateText(self, text, total_files):
+        self.allimages_percentage.setText(text)
+        self.allimages_bar.setValue((int(text)/total_files)*100)
+
+    def clearprogress(self, val):
+        self.allimages_bar.setValue(val)
 
 
 if __name__ == "__main__":
