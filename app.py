@@ -1,6 +1,7 @@
-from PyQt5.QtCore import QPoint, QRect, QSize, Qt
-from PyQt5.QtGui import QBrush, QColor, QFont, QIcon, QPainter, QPainterPath, QPixmap, QTextBlock, QTextDocument
-from PyQt5.QtWidgets import QAbstractItemView, QApplication, QDesktopWidget, QDockWidget, QFormLayout, QGridLayout, QHBoxLayout, QLabel, QLayout, QListView, QListWidget, QListWidgetItem, QMainWindow, QProgressBar, QPushButton, QSizePolicy, QVBoxLayout, QWidget
+import os
+from PyQt5.QtCore import QDir, QDirIterator, QPoint, QRect, QSize, QTimer, Qt, pyqtSlot
+from PyQt5.QtGui import QBrush, QColor, QFont, QFontMetrics, QIcon, QPainter, QPainterPath, QPixmap, QTextBlock, QTextDocument
+from PyQt5.QtWidgets import QAbstractItemView, QApplication, QDesktopWidget, QDockWidget, QFileDialog, QFormLayout, QGridLayout, QHBoxLayout, QLabel, QLayout, QListView, QListWidget, QListWidgetItem, QMainWindow, QProgressBar, QPushButton, QSizePolicy, QVBoxLayout, QWidget
 import sys
 from typing import List
 import style
@@ -10,6 +11,8 @@ class MainApp(QApplication):
         super().__init__(argv)
         self.main_window = MainWindow()
         self.main_window.show()
+
+
 
 class centralwidget(QWidget):
     def __init__(self, parent=None) -> None:
@@ -35,66 +38,134 @@ class centralwidget(QWidget):
             '''
         )
         view =  QPushButton('View', objectName='centralview')
-        _import = QPushButton('Import', objectName='centralimport')
+        _import = QPushButton('Import', objectName='centralimport', 
+            clicked= self.on_choose_btn_clicked)
+
+        view.setFocusPolicy(Qt.NoFocus)
+        _import.setFocusPolicy(Qt.NoFocus)
         
         buttons_layout.addWidget(view)
         buttons_layout.addWidget(_import)
         central_titlebar_layout.addWidget(title,1)
         central_titlebar_layout.addLayout(buttons_layout, 0)
 
-        correct_images_list = QListWidget(objectName='correctlistwidget')
+
+        self.correct_images_list = QListWidget(objectName='correctlistwidget',
+            viewMode=QListView.IconMode,
+            #iconSize= 500 * QSize(1, 1),
+            movement=QListView.Static,
+            resizeMode=QListView.Adjust,)
         
-        first_images = QListWidgetItem(correct_images_list)
-        image_wrapping_widget = QWidget()        
-        image_frame = QVBoxLayout()
-        image_frame.setContentsMargins(0,0,0,0)
-        
-        image_widget = QLabel()
-        image_prediction_widget = QLabel('Prediction', image_widget)
-        image_prediction_widget.setStyleSheet(
+        self.correct_images_list.setSpacing(10)
+        self.correct_images_list.setSizeAdjustPolicy(QListWidget.AdjustToContents)
+        self.correct_images_list.setStyleSheet(
             '''
-            background-color:#00ddb2;
-            border:none;
-            border-radius:7px;
-            color:white;
-            padding:8px;
-            font-size:20px;
-            font-weight: 400;
+            background-color: transparent;
             '''
         )
-        image_prediction_widget.setFixedHeight(30)
-    
-        pixmap = QPixmap('/home/alai/GUI-Dev/lobe-clone/Lobe-Clone/Microsoft-Lobe.jpg')
-        pixmap = pixmap.scaled(
-            QSize(int(pixmap.height()*0.5),int(pixmap.width()*0.5)),
-            Qt.KeepAspectRatio,
-            Qt.SmoothTransformation
-        )
         
-
-        image_widget.setPixmap(pixmap)
-
-        image_frame.addWidget(image_widget)
-        #image_frame.addWidget(image_prediction_widget)
-        #image_prediction_widget.move(QPoint(0,0))
-        image_prediction_widget.setGeometry(QRect(10, int(pixmap.height() - (pixmap.height()*0.2)), 120, 150))
-
-        image_wrapping_widget.setLayout(image_frame)
-        first_images.setSizeHint(image_wrapping_widget.sizeHint())
-        
-        correct_images_list.addItem(first_images)
-        correct_images_list.setItemWidget(first_images, image_wrapping_widget)
-        correct_images_list.setFocusPolicy(Qt.NoFocus)
-        correct_images_list.setFixedSize(correct_images_list.sizeHintForColumn(0) + 2 * correct_images_list.frameWidth(), correct_images_list.sizeHintForRow(0) * correct_images_list.count() + 2 * correct_images_list.frameWidth())
-        #correct_images_list.setMaximumWidth(pixmap.width())
-        
-
         central_layout.addLayout(central_titlebar_layout)
         central_layout.addWidget(correct_label)
-        central_layout.addWidget(correct_images_list)
+        central_layout.addWidget(self.correct_images_list,1)
         central_layout.addStretch()
 
+        self.timer_loading = QTimer(interval=50, timeout=self.load_image)
+        self.filenames_iterator = None
         self.setLayout(central_layout)
+
+    @pyqtSlot()
+    def on_choose_btn_clicked(self):
+
+        directory = QFileDialog.getExistingDirectory(
+            options=QFileDialog.DontUseNativeDialog
+        )
+        if directory:
+            self.start_loading(directory)
+
+    @pyqtSlot()
+    def on_back_btn_clicked(self):
+        directory = os.path.dirname(self.path_le.text())
+        self.start_loading(directory)
+
+    def start_loading(self, directory):
+        if self.timer_loading.isActive():
+            self.timer_loading.stop()
+        #self.path_le.setText(directory)
+        self.filenames_iterator = self.load_images(directory)
+        self.correct_images_list.clear()
+        self.timer_loading.start()
+
+    @pyqtSlot()
+    def load_image(self):
+        try:
+            filename = next(self.filenames_iterator)
+        except StopIteration:
+            self.timer_loading.stop()
+        else:
+            name = os.path.basename(filename)
+            
+            images_list = QListWidgetItem()
+            image_widget = QLabel()
+            image_wrapping_widget = QWidget()
+            
+            
+            
+            image_frame = QHBoxLayout()
+            pixmap = QPixmap(filename)
+            pixmap = pixmap.scaled(
+                QSize(int(pixmap.height()*0.3),int(pixmap.width()*0.3)),
+                Qt.KeepAspectRatio,
+                Qt.SmoothTransformation
+            )
+            size_image = pixmap.size()
+            rounded = QPixmap(size_image)
+            rounded.fill(QColor("transparent"))
+            painter = QPainter(rounded)
+            painter.setRenderHint(QPainter.Antialiasing)
+            painter.setBrush(QBrush(pixmap))
+            painter.setPen(Qt.NoPen)
+            painter.drawRoundedRect(pixmap.rect(), pixmap.width()*0.035, pixmap.width()*0.035)
+            painter.end()
+
+            image_prediction_widget = QLabel(image_widget)
+            
+            if image_prediction_widget.width()+100 < pixmap.width():
+                metrics = QFontMetrics(image_widget.font())
+                elided = metrics.elidedText(name, Qt.ElideRight, 70)
+                image_prediction_widget.setText(elided)
+                image_prediction_widget.setStyleSheet(
+                    '''
+                    background-color:#00ddb2;
+                    border:none;
+                    border-radius:7px;
+                    color:white;
+                    padding:8px;
+                    font-size:20px;
+                    font-weight: 400;
+                    '''
+                )
+                image_prediction_widget.setFixedHeight(30)
+                image_prediction_widget.setGeometry(QRect(10, int(pixmap.height() - (pixmap.height()*0.2)), 120, 150))
+
+            image_widget.setPixmap(rounded)
+            image_frame.addWidget(image_widget)
+            image_wrapping_widget.setLayout(image_frame)
+            images_list.setSizeHint(image_wrapping_widget.sizeHint())
+            self.correct_images_list.addItem(images_list)
+            self.correct_images_list.setItemWidget(images_list, image_wrapping_widget)
+            
+
+    def load_images(self, directory):
+        it = QDirIterator(
+            directory,
+            ["*.jpg", "*.png"],
+            QDir.Files,
+            QDirIterator.Subdirectories,
+        )
+        while it.hasNext():
+            filename = it.next()
+            yield filename
+
         
         
 class MainWindow(QMainWindow):
@@ -159,11 +230,11 @@ class MainWindow(QMainWindow):
         #                    listwidget.sizeHintForRow(0) * listwidget.count() + 2 * listwidget.frameWidth())
 
         label = QListWidgetItem('Label', listwidget)
-        label.setIcon(QIcon('edit.png'))
+        label.setIcon(QIcon('/home/alai/GUI-Dev/lobe-clone/Lobe-Clone/edit.png'))
         train = QListWidgetItem('Train', listwidget)
-        train.setIcon(QIcon('tick_check_checked_checkbox_icon_177982.png'))
+        train.setIcon(QIcon('/home/alai/GUI-Dev/lobe-clone/Lobe-Clone/tick_check_checked_checkbox_icon_177982.png'))
         use = QListWidgetItem('Use', listwidget)
-        use.setIcon(QIcon('3d-cube.png'))
+        use.setIcon(QIcon('/home/alai/GUI-Dev/lobe-clone/Lobe-Clone/3d-cube.png'))
         listwidget.setSpacing(2)
         listwidget.setFocusPolicy(Qt.NoFocus)
         listwidget.setMaximumHeight(listwidget.count()*60)
@@ -178,7 +249,7 @@ class MainWindow(QMainWindow):
         images_count_list.setSpacing(2)
         images_count_list.setFocusPolicy(Qt.NoFocus)
         
-        list_items = ['All Images', 'Fern', 'Madrone', 'Toyon','Manzanita','All Images', 'Fern', 'Madrone', 'Toyon','Manzanita',]
+        list_items = ['All Images', 'Fern', 'Madrone', 'Toyon']
         for i in range(len(list_items)):
             images_count_widget = QWidget()
             images_count_layout = QFormLayout(objectName = 'allimages')
