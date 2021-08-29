@@ -119,6 +119,7 @@ class centralwidget(QWidget):
                 Qt.KeepAspectRatio,
                 Qt.SmoothTransformation
             )
+            #print(filename)
             size_image = pixmap.size()
             rounded = QPixmap(size_image)
             rounded.fill(QColor("transparent"))
@@ -126,7 +127,7 @@ class centralwidget(QWidget):
             painter.setRenderHint(QPainter.Antialiasing)
             painter.setBrush(QBrush(pixmap))
             painter.setPen(Qt.NoPen)
-            painter.drawRoundedRect(pixmap.rect(), pixmap.width()*0.035, pixmap.width()*0.035)
+            painter.drawRoundedRect(pixmap.rect(), pixmap.height()*0.035, pixmap.width()*0.035)
             painter.end()
 
             image_prediction_widget = QLabel(image_widget)
@@ -167,14 +168,17 @@ class centralwidget(QWidget):
             QDirIterator.Subdirectories,
         )
         
-        total_files= [len(glob.glob(os.path.join(directory,ext),recursive=True)) for ext in extensions]
-        total_files = sum(total_files)
+        total_files= []
+        path_list = [total_files.extend(glob.glob(os.path.join(dir, ext)))
+                     for dir, _, _ in os.walk(directory) for ext in extensions]
+        #total_files = sum(total_files)
+        print(len(total_files))
         
         files_count = 0
         while it.hasNext():
             filename = it.next()
             files_count += 1
-            self.file_count.emit(str(files_count), total_files)
+            self.file_count.emit(str(files_count), len(total_files))
             yield filename
 
 class MainWindow(QMainWindow):
