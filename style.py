@@ -1,10 +1,10 @@
 #LabGrotesque,Helvetica Neue,Helvetica,Arial,sans-serif;
 stylesheet = '''
-#centralwidget {
+#classificationwidget {
     background-color : #000000;
 }
 
-QListView::item:selected {
+#correctlistwidget::item:selected {
             border: 2px solid #6a6ea9;
             border-radius: 15px;
             color: white;
@@ -39,11 +39,13 @@ QMainWindow {
 }
 
 
-#listwidget::item:selected
+#listwidget::item:selected, #listwidget::item:hover
 {
     background: #00ddb2;
     border-radius : 10px;
 }
+
+
 
 #imagescountlist::item:selected
 {
@@ -76,7 +78,23 @@ QMainWindow {
     font-size: 25px;
 }
 
-#centralview, #centralimport {
+#learnmore, #watchtour {
+    font-family: Helvetica;
+    font-size: 20px;
+    font-weight: 300;
+    border : none;
+    border-radius: 10px;
+    background-color: #e7e6eb;
+    padding-left: 10px;
+    padding-right: 20px;
+}
+
+#defaultmessage {
+    font-family: Helvetica;
+    font-size: 30px;
+    font-weight: 400;
+}
+#classificationview, #classificationimport {
     border : none;
     border-radius: 10px;
     background-color: #e7e6eb;
@@ -87,6 +105,9 @@ QMainWindow {
     padding: 10px;
 }
 
+#classificationimport:hover, #classificationview:hover, #learnmore:hover, #watchtour:hover {
+    background-color: #b7b6bb;
+}
 
 
 
@@ -121,6 +142,7 @@ QScrollBar::sub-line:horizontal, QScrollBar::sub-line:vertical {
     subcontrol-origin: margin;
     border-radius: 5px;
 }
+
 
 '''
 #border:none;

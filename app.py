@@ -13,35 +13,109 @@ class MainApp(QApplication):
         self.main_window.show()
 
 
+class UnderMaintainence(QWidget):
+    def __init__(self, parent=None) -> None:
+        super(UnderMaintainence, self).__init__(parent=parent)
+        self.widget()
 
-class centralwidget(QWidget):
+    def widget(self):
+        undermaintainence_layout = QHBoxLayout(objectName='undermaintainencelayout')
+        undermaintainence_layout.setSpacing(0)
+        undermaintainence_content_layout = QVBoxLayout()
+        
+
+        undermaintainence_image = QLabel()
+        
+        undermaintainence_message =  QLabel('This page being builded.',
+                                objectName= 'defaultmessage')
+        
+        pixmap = QPixmap('/home/alai/GUI-Dev/lobe-clone/undermaintainence.png')
+        undermaintainence_image.setPixmap(pixmap)
+
+        
+        undermaintainence_content_layout.addWidget(undermaintainence_message, alignment=Qt.AlignBottom)
+        undermaintainence_content_layout.setSpacing(30)
+
+        undermaintainence_layout.addWidget(undermaintainence_image)
+        undermaintainence_layout.addLayout(undermaintainence_content_layout)
+        undermaintainence_content_layout.setAlignment(Qt.AlignCenter)
+        
+        undermaintainence_layout.addStretch()
+        self.setLayout(undermaintainence_layout)
+
+class DefaultMainWidget(QWidget):
+    def __init__(self, parent=None) -> None:
+        super(DefaultMainWidget, self).__init__(parent=parent)
+        self.widget()
+
+    def widget(self):
+        default_layout = QHBoxLayout(objectName='defaultwidgetlayout')
+        default_layout.setSpacing(0)
+        default_content_layout = QVBoxLayout()
+        information_button_layout = QHBoxLayout()
+
+        default_image = QLabel()
+        learn_more = QPushButton('Learn More', objectName = 'learnmore')
+        watch_tour = QPushButton('Watch Tour', objectName = 'watchtour')
+        learn_more.setIcon(QIcon('/home/alai/GUI-Dev/lobe-clone/Facebook Post 940x788 px.png'))
+        watch_tour.setIcon(QIcon('/home/alai/GUI-Dev/lobe-clone/Facebook Post 940x788 px(1).png'))
+        learn_more.setIconSize(QSize(50,50))
+        watch_tour.setIconSize(QSize(50,50))
+
+
+        default_message =  QLabel('To inference your model, <br>import images and classify or detect some images<br/>',
+                                objectName= 'defaultmessage')
+        
+        pixmap = QPixmap('/home/alai/GUI-Dev/lobe-clone/0_m89Bm0-QYfXPCuuy-removebg-preview.png')
+        default_image.setPixmap(pixmap)
+
+        information_button_layout.addWidget(learn_more)
+        information_button_layout.addWidget(watch_tour)
+        information_button_layout.setSpacing(10)
+        information_button_layout.addStretch()
+
+        default_content_layout.addWidget(default_message, alignment=Qt.AlignBottom)
+        default_content_layout.addLayout(information_button_layout)
+        default_content_layout.setSpacing(30)
+        
+        
+        default_layout.addWidget(default_image)
+        default_layout.addLayout(default_content_layout)
+        default_content_layout.setAlignment(Qt.AlignCenter)
+        
+        default_layout.addStretch()
+        self.setLayout(default_layout)
+
+        
+
+class ClassificationWidget(QWidget):
     file_count = pyqtSignal(str, int)
     clear_progress = pyqtSignal(int)
 
     def __init__(self, parent=None) -> None:
-        super(centralwidget,self).__init__(parent)
+        super(ClassificationWidget,self).__init__(parent)
         self.widget()
         
         self.setStyleSheet(style.stylesheet)
 
     def widget(self):
-        central_layout =  QVBoxLayout(objectName='centralwidgetlayout')
-        central_titlebar_layout =  QHBoxLayout()
+        classification_layout =  QVBoxLayout(objectName='classificationwidgetlayout')
+        classification_titlebar_layout =  QHBoxLayout()
         correct_label = QLabel('Correct <span style=font-weight:200;>97%</span>')
         correct_label.setStyleSheet('''
             padding:20px;
             font-size: 15px;
         ''')
         buttons_layout = QHBoxLayout()
-        title =  QLabel('All Images', objectName='centralTitle')
+        title =  QLabel('All Images', objectName='classificationTitle')
         title.setStyleSheet(
             '''
             font-size:25px;
             padding: 20px;
             '''
         )
-        view =  QPushButton('View', objectName='centralview')
-        _import = QPushButton('Import', objectName='centralimport', 
+        view =  QPushButton('View', objectName='classificationview')
+        _import = QPushButton('Import', objectName='classificationimport', 
             clicked= self.on_choose_btn_clicked)
 
         view.setFocusPolicy(Qt.NoFocus)
@@ -49,8 +123,8 @@ class centralwidget(QWidget):
         
         buttons_layout.addWidget(view)
         buttons_layout.addWidget(_import)
-        central_titlebar_layout.addWidget(title,1)
-        central_titlebar_layout.addLayout(buttons_layout, 0)
+        classification_titlebar_layout.addWidget(title,1)
+        classification_titlebar_layout.addLayout(buttons_layout, 0)
 
 
         self.correct_images_list = QListWidget(objectName='correctlistwidget',
@@ -67,20 +141,20 @@ class centralwidget(QWidget):
             '''
         )
         
-        central_layout.addLayout(central_titlebar_layout)
-        central_layout.addWidget(correct_label)
-        central_layout.addWidget(self.correct_images_list,1)
-        central_layout.addStretch()
+        classification_layout.addLayout(classification_titlebar_layout)
+        #classification_layout.addWidget(correct_label)
+        classification_layout.addWidget(self.correct_images_list,1)
+        classification_layout.addStretch()
 
         self.timer_loading = QTimer(interval=50, timeout=self.load_image)
         self.filenames_iterator = None
-        self.setLayout(central_layout)
+        self.setLayout(classification_layout)
 
     @pyqtSlot()
     def on_choose_btn_clicked(self):
         
         directory = QFileDialog.getExistingDirectory(
-            #options=QFileDialog.DontUseNativeDialog
+            options=QFileDialog.DontUseNativeDialog
         )
         if directory:
             self.clear_progress.emit(0)
@@ -135,7 +209,7 @@ class centralwidget(QWidget):
             
             if image_prediction_widget.width()+100 < pixmap.width():
                 metrics = QFontMetrics(image_widget.font())
-                elided = metrics.elidedText(name, Qt.ElideRight, 70)
+                elided = metrics.elidedText(name, Qt.ElideRight, 100)
                 image_prediction_widget.setText(elided)
                 image_prediction_widget.setStyleSheet(
                     '''
@@ -148,8 +222,8 @@ class centralwidget(QWidget):
                     font-weight: 400;
                     '''
                 )
-                image_prediction_widget.setFixedHeight(20)
-                image_prediction_widget.setGeometry(QRect(10, int(pixmap.height() - (pixmap.height()*0.3)), 120, 150))
+                image_prediction_widget.move(10, int(pixmap.height() - (pixmap.height()*0.2)))
+                #image_prediction_widget.setGeometry(QRect(10, int(pixmap.height() - (pixmap.height()*0.3)), 120, 150))
 
             image_widget.setPixmap(rounded)
             image_frame.addWidget(image_widget)
@@ -172,7 +246,7 @@ class centralwidget(QWidget):
         path_list = [total_files.extend(glob.glob(os.path.join(dir, ext)))
                      for dir, _, _ in os.walk(directory) for ext in extensions]
         #total_files = sum(total_files)
-        print(len(total_files))
+        #print(len(total_files))
         
         files_count = 0
         while it.hasNext():
@@ -197,11 +271,13 @@ class MainWindow(QMainWindow):
         
 
     def _setlayout(self):
-        self.widget = centralwidget()
-        self.widget.file_count.connect(self.updateText)
-        self.widget.clear_progress.connect(self.clearprogress)
-        self.setCentralWidget(self.widget)
-        self.widget.setStyleSheet(
+        self.classification_widget = ClassificationWidget()
+        self.defualtwidget = DefaultMainWidget()
+        self.undermaintainence = UnderMaintainence()
+        self.classification_widget.file_count.connect(self.updateText)
+        self.classification_widget.clear_progress.connect(self.clearprogress)
+        self.setCentralWidget(self.defualtwidget)
+        self.classification_widget.setStyleSheet(
             '''
             font-family: Helvetica;
             font-weight: bold;
@@ -237,58 +313,32 @@ class MainWindow(QMainWindow):
         )
         side_bar = QWidget()
         menu_layout =  QVBoxLayout()
-        listwidget = QListWidget( objectName='listwidget')
-        
-        #listwidget.setVerticalScrollMode(QAbstractItemView.ScrollPerPixel)
-        
-        #listwidget.setFixedSize(listwidget.sizeHintForColumn(0) + 2 * listwidget.frameWidth(), 
-        #                    listwidget.sizeHintForRow(0) * listwidget.count() + 2 * listwidget.frameWidth())
 
-        label = QListWidgetItem('Label', listwidget)
-        label.setIcon(QIcon('/home/alai/GUI-Dev/lobe-clone/Lobe-Clone/edit.png'))
-        train = QListWidgetItem('Train', listwidget)
-        train.setIcon(QIcon('/home/alai/GUI-Dev/lobe-clone/Lobe-Clone/tick_check_checked_checkbox_icon_177982.png'))
-        use = QListWidgetItem('Use', listwidget)
-        use.setIcon(QIcon('/home/alai/GUI-Dev/lobe-clone/Lobe-Clone/3d-cube.png'))
+        listwidget = QListWidget( objectName='listwidget')
+        listwidget.itemClicked.connect(self.updateCentralWidget)
+
+        classification = QListWidgetItem('Image Classification', listwidget)
+        classification.setIcon(QIcon('/home/alai/GUI-Dev/lobe-clone/Lobe-Clone/tick_check_checked_checkbox_icon_177982.png'))
+        
+        detection = QListWidgetItem('Object Detection', listwidget)
+        detection.setIcon(QIcon('/home/alai/GUI-Dev/lobe-clone/Lobe-Clone/3d-cube.png'))
+        analyse = QListWidgetItem('Analyse', listwidget)
+        analyse.setIcon(QIcon('/home/alai/GUI-Dev/lobe-clone/Lobe-Clone/edit.png'))
+
+
         listwidget.setSpacing(2)
         listwidget.setFocusPolicy(Qt.NoFocus)
         listwidget.setMaximumHeight(listwidget.count()*60)
         
 
-        images_count_list = QListWidget(objectName = 'imagescountlist')
-        #images_count_list.setResizeMode(QListView.Adjust)
-        #images_count_list.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-        #images_count_list.setVerticalScrollMode(QAbstractItemView.ScrollPerPixel)
+        self.images_count_list = QListWidget(objectName = 'imagescountlist')
                 
-        images_count_list.setSpacing(2)
-        images_count_list.setFocusPolicy(Qt.NoFocus)
+        self.images_count_list.setSpacing(2)
+        self.images_count_list.setFocusPolicy(Qt.NoFocus)
         
-        list_items = ['All Images']
-        for i in range(len(list_items)):
-            images_count_widget = QWidget()
-            images_count_layout = QFormLayout(objectName = 'allimages')
-            images_count_layout.setLabelAlignment(Qt.AlignLeft)
-            images_count_layout.setFormAlignment(Qt.AlignLeft)
-            allimages = QLabel(list_items[i])
+        self.addImageCountWidget('All Images')
+        
             
-            allimages.setFont(QFont('Helvetica'))
-            
-            self.allimages_percentage = QLabel('0', alignment= Qt.AlignRight)
-            self.allimages_percentage.setFont(QFont('Helvetica'))
-            
-            self.allimages_bar = QProgressBar(objectName='imagescountbar')
-            self.allimages_bar.setFixedHeight(7)
-            self.allimages_bar.setTextVisible(False)
-            self.allimages_bar.setValue(0)
-            images_count_layout.addRow(allimages, self.allimages_percentage)
-            images_count_layout.addRow(self.allimages_bar)
-            images_count_widget.setLayout(images_count_layout)
-
-            listwidget_item = QListWidgetItem(images_count_list)
-            listwidget_item.setSizeHint(images_count_widget.sizeHint())
-            images_count_list.addItem(listwidget_item)
-            images_count_list.setItemWidget(listwidget_item, images_count_widget)    
-
         #images_count_list.setMaximumHeight(5*60)
 
         information_box = QLabel(objectName='informationbox')
@@ -298,7 +348,7 @@ class MainWindow(QMainWindow):
 
 
         menu_layout.addWidget(listwidget)
-        menu_layout.addWidget(images_count_list)
+        menu_layout.addWidget(self.images_count_list)
         menu_layout.addWidget(information_box)
         menu_layout.setSpacing(0)
         menu_layout.setContentsMargins(0,0,0,0)
@@ -311,9 +361,43 @@ class MainWindow(QMainWindow):
                 
         dock.setWidget(side_bar)
 
+    def addImageCountWidget(self, widgetname):
+        images_count_widget = QWidget()
+        images_count_layout = QFormLayout(objectName = widgetname)
+        images_count_layout.setLabelAlignment(Qt.AlignLeft)
+        images_count_layout.setFormAlignment(Qt.AlignLeft)
+        allimages = QLabel(widgetname)
+        
+        allimages.setFont(QFont('Helvetica'))
+        
+        self.allimages_percentage = QLabel('0', alignment= Qt.AlignRight)
+        self.allimages_percentage.setFont(QFont('Helvetica'))
+        
+        self.allimages_bar = QProgressBar(objectName='imagescountbar')
+        self.allimages_bar.setFixedHeight(7)
+        self.allimages_bar.setTextVisible(False)
+        self.allimages_bar.setValue(0)
+        images_count_layout.addRow(allimages, self.allimages_percentage)
+        images_count_layout.addRow(self.allimages_bar)
+        images_count_widget.setLayout(images_count_layout)
+
+        listwidget_item = QListWidgetItem(self.images_count_list)
+        listwidget_item.setSizeHint(images_count_widget.sizeHint())
+        self.images_count_list.addItem(listwidget_item)
+        self.images_count_list.setItemWidget(listwidget_item, images_count_widget)  
+
+    def updateCentralWidget(self, item):
+        item = item.text()
+        if item == 'Image Classification':
+            self.setCentralWidget(self.classification_widget)
+            self.centralWidget().setContentsMargins(40,40,40,40)
+        elif item == 'Object Detection':
+            self.setCentralWidget(self.undermaintainence)
+            
+
     def updateText(self, text, total_files):
         self.allimages_percentage.setText(text)
-        self.allimages_bar.setValue((int(text)/total_files)*100)
+        self.allimages_bar.setValue(int((int(text)/total_files)*100))
 
     def clearprogress(self, val):
         self.allimages_bar.setValue(val)
