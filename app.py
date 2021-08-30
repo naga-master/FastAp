@@ -1,7 +1,7 @@
 import os
-from PyQt5.QtCore import QDir, QDirIterator, QPoint, QRect, QSize, QTimer, Qt, pyqtSignal, pyqtSlot
+from PyQt5.QtCore import QDir, QDirIterator, QMetaObject, QPoint, QRect, QSize, QTimer, Qt, pyqtSignal, pyqtSlot
 from PyQt5.QtGui import QBrush, QColor, QFont, QFontMetrics, QIcon, QPainter, QPainterPath, QPixmap, QTextBlock, QTextDocument
-from PyQt5.QtWidgets import QAbstractItemView, QApplication, QDesktopWidget, QDockWidget, QFileDialog, QFormLayout, QGridLayout, QHBoxLayout, QLabel, QLayout, QListView, QListWidget, QListWidgetItem, QMainWindow, QProgressBar, QPushButton, QSizePolicy, QVBoxLayout, QWidget
+from PyQt5.QtWidgets import QAbstractItemView, QApplication, QDesktopWidget, QDockWidget, QFileDialog, QFormLayout, QFrame, QGridLayout, QHBoxLayout, QLabel, QLayout, QListView, QListWidget, QListWidgetItem, QMainWindow, QProgressBar, QPushButton, QSizePolicy, QStackedLayout, QStackedWidget, QVBoxLayout, QWidget
 import sys, glob
 from typing import List
 import style
@@ -83,7 +83,7 @@ class DefaultMainWidget(QWidget):
         default_layout.addLayout(default_content_layout)
         default_content_layout.setAlignment(Qt.AlignCenter)
         
-        default_layout.addStretch()
+        default_layout.addStretch(0)
         self.setLayout(default_layout)
 
         
@@ -95,8 +95,6 @@ class ClassificationWidget(QWidget):
     def __init__(self, parent=None) -> None:
         super(ClassificationWidget,self).__init__(parent)
         self.widget()
-        
-        self.setStyleSheet(style.stylesheet)
 
     def widget(self):
         classification_layout =  QVBoxLayout(objectName='classificationwidgetlayout')
@@ -260,32 +258,53 @@ class MainWindow(QMainWindow):
     def __init__(self, parent=None)-> None:
         super(MainWindow, self).__init__(parent=parent)
         self.setWindowTitle('Lobe-Clone_1')
+        self.centralwidget = QWidget(self)
+        self.centralwidget.setObjectName('centralwidget')
+        self.centralwidget.setStyleSheet('''
+        border:0px solid blue;
+        ''')
+        
         self._setlayout()
         self._createDockWidget()
+        self.setCentralWidget(self.centralwidget)
+        
         screen = QDesktopWidget().availableGeometry()
         self.setGeometry(0,0,screen.width(),screen.height())
         self.setMinimumSize(QSize(500, 500))
         self.setStyleSheet(style.stylesheet)
         
-
-        
+        self.centralwidget.setContentsMargins(40,40,40,40)
 
     def _setlayout(self):
-        self.classification_widget = ClassificationWidget()
-        self.defualtwidget = DefaultMainWidget()
-        self.undermaintainence = UnderMaintainence()
+        self.stackedWidget = QStackedLayout(self.centralwidget)
+        self.stackedWidget.setObjectName('stackedwidget')
+
+        self.classification_widget = ClassificationWidget(self.centralwidget)
+        self.defualtwidget = DefaultMainWidget(self.centralwidget)
+        self.undermaintainence = UnderMaintainence(self.centralwidget)
+
+        
         self.classification_widget.file_count.connect(self.updateText)
         self.classification_widget.clear_progress.connect(self.clearprogress)
-        self.setCentralWidget(self.defualtwidget)
+        
         self.classification_widget.setStyleSheet(
             '''
             font-family: Helvetica;
             font-weight: bold;
             '''
         )
-        self.centralWidget().setContentsMargins(40,40,40,40)
+        
+        self.stackedWidget.addWidget(self.defualtwidget)
+        self.stackedWidget.addWidget(self.classification_widget)
+        self.stackedWidget.addWidget(self.undermaintainence)
 
         
+        #self.centralWidget().setContentsMargins(40,40,40,40)
+        self.stackedWidget.setCurrentIndex(0)
+        #QMetaObject.connectSlotsByName(self)
+
+    
+
 
     def _createDockWidget(self):
         dock = QDockWidget(objectName='dockwidget')
@@ -314,21 +333,21 @@ class MainWindow(QMainWindow):
         side_bar = QWidget()
         menu_layout =  QVBoxLayout()
 
-        listwidget = QListWidget( objectName='listwidget')
-        listwidget.itemClicked.connect(self.updateCentralWidget)
+        self.listwidget = QListWidget( objectName='listwidget')
+        self.listwidget.itemClicked.connect(self.updateCentralWidget)
 
-        classification = QListWidgetItem('Image Classification', listwidget)
+        classification = QListWidgetItem('Image Classification', self.listwidget)
         classification.setIcon(QIcon('/home/alai/GUI-Dev/lobe-clone/Lobe-Clone/tick_check_checked_checkbox_icon_177982.png'))
         
-        detection = QListWidgetItem('Object Detection', listwidget)
+        detection = QListWidgetItem('Object Detection', self.listwidget)
         detection.setIcon(QIcon('/home/alai/GUI-Dev/lobe-clone/Lobe-Clone/3d-cube.png'))
-        analyse = QListWidgetItem('Analyse', listwidget)
-        analyse.setIcon(QIcon('/home/alai/GUI-Dev/lobe-clone/Lobe-Clone/edit.png'))
+        analyze = QListWidgetItem('Analyze', self.listwidget)
+        analyze.setIcon(QIcon('/home/alai/GUI-Dev/lobe-clone/Lobe-Clone/edit.png'))
 
 
-        listwidget.setSpacing(2)
-        listwidget.setFocusPolicy(Qt.NoFocus)
-        listwidget.setMaximumHeight(listwidget.count()*60)
+        self.listwidget.setSpacing(2)
+        self.listwidget.setFocusPolicy(Qt.NoFocus)
+        self.listwidget.setMaximumHeight(self.listwidget.count()*60)
         
 
         self.images_count_list = QListWidget(objectName = 'imagescountlist')
@@ -347,7 +366,7 @@ class MainWindow(QMainWindow):
         information_box.setWordWrap(True)
 
 
-        menu_layout.addWidget(listwidget)
+        menu_layout.addWidget(self.listwidget)
         menu_layout.addWidget(self.images_count_list)
         menu_layout.addWidget(information_box)
         menu_layout.setSpacing(0)
@@ -389,10 +408,13 @@ class MainWindow(QMainWindow):
     def updateCentralWidget(self, item):
         item = item.text()
         if item == 'Image Classification':
-            self.setCentralWidget(self.classification_widget)
-            self.centralWidget().setContentsMargins(40,40,40,40)
+            self.stackedWidget.setCurrentIndex(1)
+            
         elif item == 'Object Detection':
-            self.setCentralWidget(self.undermaintainence)
+            self.stackedWidget.setCurrentIndex(2)
+
+        elif item == 'Analyze':
+            self.stackedWidget.setCurrentIndex(2)
             
 
     def updateText(self, text, total_files):
