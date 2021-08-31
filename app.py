@@ -19,29 +19,23 @@ class UnderMaintainence(QWidget):
         self.widget()
 
     def widget(self):
-        undermaintainence_layout = QHBoxLayout(objectName='undermaintainencelayout')
-        undermaintainence_layout.setSpacing(0)
-        undermaintainence_content_layout = QVBoxLayout()
-        
-
+        undermaintainence_layout = QHBoxLayout(objectName='undermaintainencelayout')        
         undermaintainence_image = QLabel()
-        
-        undermaintainence_message =  QLabel('This page being builded.',
+        undermaintainence_message =  QLabel('We are working on this page for you.',
                                 objectName= 'defaultmessage')
         
         pixmap = QPixmap('/home/alai/GUI-Dev/lobe-clone/undermaintainence.png')
         undermaintainence_image.setPixmap(pixmap)
-
         
-        undermaintainence_content_layout.addWidget(undermaintainence_message, alignment=Qt.AlignBottom)
-        undermaintainence_content_layout.setSpacing(30)
-
-        undermaintainence_layout.addWidget(undermaintainence_image)
-        undermaintainence_layout.addLayout(undermaintainence_content_layout)
-        undermaintainence_content_layout.setAlignment(Qt.AlignCenter)
+        undermaintainence_layout.addWidget(undermaintainence_image,0, alignment=Qt.AlignCenter)
+        undermaintainence_layout.addWidget(undermaintainence_message)
         
-        undermaintainence_layout.addStretch()
+        
+        undermaintainence_layout.setSpacing(0)
+        undermaintainence_layout.setContentsMargins(0,0,0,0)
+        undermaintainence_layout.setAlignment(Qt.AlignCenter)
         self.setLayout(undermaintainence_layout)
+        
 
 class DefaultMainWidget(QWidget):
     def __init__(self, parent=None) -> None:
@@ -85,6 +79,7 @@ class DefaultMainWidget(QWidget):
         
         default_layout.addStretch(0)
         self.setLayout(default_layout)
+        
 
         
 
@@ -112,7 +107,7 @@ class ClassificationWidget(QWidget):
             padding: 20px;
             '''
         )
-        view =  QPushButton('View', objectName='classificationview')
+        view =  QPushButton('Predict', objectName='classificationview')
         _import = QPushButton('Import', objectName='classificationimport', 
             clicked= self.on_choose_btn_clicked)
 
@@ -130,6 +125,8 @@ class ClassificationWidget(QWidget):
             #iconSize= 500 * QSize(1, 1),
             movement=QListView.Static,
             resizeMode=QListView.Adjust,)
+
+        self.correct_images_list._placeholder_text = ""
         
         self.correct_images_list.setSpacing(10)
         self.correct_images_list.setSizeAdjustPolicy(QListWidget.AdjustToContents)
@@ -147,6 +144,7 @@ class ClassificationWidget(QWidget):
         self.timer_loading = QTimer(interval=50, timeout=self.load_image)
         self.filenames_iterator = None
         self.setLayout(classification_layout)
+        self.placeholder_text = "Please Import Images by clicking Import Button"
 
     @pyqtSlot()
     def on_choose_btn_clicked(self):
@@ -253,6 +251,30 @@ class ClassificationWidget(QWidget):
             self.file_count.emit(str(files_count), len(total_files))
             yield filename
 
+    @property
+    def placeholder_text(self):
+        return self.correct_images_list._placeholder_text
+
+    @placeholder_text.setter
+    def placeholder_text(self, text):
+        self.correct_images_list._placeholder_text = text
+        self.correct_images_list.update()
+
+    def paintEvent(self, event):
+        super().paintEvent(event)
+        if self.correct_images_list.count() == 0:
+            painter = QPainter(self)
+            painter.save()
+            col = self.correct_images_list.palette().placeholderText().color()
+            painter.setPen(col)
+            fm = self.correct_images_list.fontMetrics()
+            elided_text = fm.elidedText(
+                self.placeholder_text, Qt.ElideRight, self.correct_images_list.viewport().width()
+            )
+            painter.drawText(self.correct_images_list.viewport().rect(), Qt.AlignCenter, elided_text)
+            painter.restore()
+            
+
 class MainWindow(QMainWindow):
 
     def __init__(self, parent=None)-> None:
@@ -260,9 +282,6 @@ class MainWindow(QMainWindow):
         self.setWindowTitle('Lobe-Clone_1')
         self.centralwidget = QWidget(self)
         self.centralwidget.setObjectName('centralwidget')
-        self.centralwidget.setStyleSheet('''
-        border:0px solid blue;
-        ''')
         
         self._setlayout()
         self._createDockWidget()
@@ -355,7 +374,7 @@ class MainWindow(QMainWindow):
         self.images_count_list.setSpacing(2)
         self.images_count_list.setFocusPolicy(Qt.NoFocus)
         
-        self.addImageCountWidget('All Images')
+        self.addImageCountWidget('Total Images')
         
             
         #images_count_list.setMaximumHeight(5*60)
