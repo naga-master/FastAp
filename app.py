@@ -1,7 +1,7 @@
 import os
 from PyQt5.QtCore import QDir, QDirIterator, QMetaObject, QPoint, QRect, QSize, QTimer, Qt, pyqtSignal, pyqtSlot
 from PyQt5.QtGui import QBrush, QColor, QFont, QFontMetrics, QIcon, QPainter, QPainterPath, QPixmap, QTextBlock, QTextDocument
-from PyQt5.QtWidgets import QAbstractItemView, QApplication, QDesktopWidget, QDockWidget, QFileDialog, QFormLayout, QFrame, QGridLayout, QHBoxLayout, QLabel, QLayout, QListView, QListWidget, QListWidgetItem, QMainWindow, QProgressBar, QPushButton, QSizePolicy, QStackedLayout, QStackedWidget, QVBoxLayout, QWidget
+from PyQt5.QtWidgets import QAbstractItemView, QApplication, QComboBox, QDesktopWidget, QDockWidget, QFileDialog, QFormLayout, QFrame, QGridLayout, QHBoxLayout, QLabel, QLayout, QListView, QListWidget, QListWidgetItem, QMainWindow, QProgressBar, QPushButton, QSizePolicy, QStackedLayout, QStackedWidget, QVBoxLayout, QWidget
 import sys, glob
 from typing import List
 import style
@@ -107,6 +107,23 @@ class ClassificationWidget(QWidget):
             padding: 20px;
             '''
         )
+        title.setAlignment(Qt.AlignCenter)
+
+        model_selection = QComboBox(self)
+        model_selection.setObjectName('classificationmodelselection')
+        model_selection.addItem('Select Model')
+        model_selection.addItem('Test Model')
+        model_selection.setStyleSheet(
+            '''
+            #model_selection::down-arrow{
+                border : none;
+                border-radius: 10px;
+                background-color: #e7e6eb;
+            }
+            '''
+        )
+        
+
         view =  QPushButton('Predict', objectName='classificationview')
         _import = QPushButton('Import', objectName='classificationimport', 
             clicked= self.on_choose_btn_clicked)
@@ -116,8 +133,12 @@ class ClassificationWidget(QWidget):
         
         buttons_layout.addWidget(view)
         buttons_layout.addWidget(_import)
+        buttons_layout.setSpacing(10)
+        #classification_titlebar_layout.addWidget(title,1)
+        classification_titlebar_layout.addWidget(model_selection)
         classification_titlebar_layout.addWidget(title,1)
         classification_titlebar_layout.addLayout(buttons_layout, 0)
+        
 
 
         self.correct_images_list = QListWidget(objectName='correctlistwidget',

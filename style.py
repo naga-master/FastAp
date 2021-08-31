@@ -1,4 +1,5 @@
 #LabGrotesque,Helvetica Neue,Helvetica,Arial,sans-serif;
+#Franklin Gothic Medium;
 stylesheet = '''
 #classificationwidget {
     background-color : #000000;
@@ -94,7 +95,7 @@ QMainWindow {
     font-size: 30px;
     font-weight: 400;
 }
-#classificationview, #classificationimport {
+ #classificationview, #classificationimport {
     border : none;
     border-radius: 10px;
     background-color: #e7e6eb;
@@ -105,7 +106,57 @@ QMainWindow {
     padding: 10px;
 }
 
-#classificationimport:hover, #classificationview:hover, #learnmore:hover, #watchtour:hover {
+QComboBox {
+    border: none;
+    border-radius: 10px;
+    background-color: #e7e6eb;
+    min-width: 6em;
+    padding: 10px;
+}
+
+#classificationview, #classificationimport, QComboBox:!editable, QComboBox::drop-down:editable {
+     background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
+                                 stop: 0 #E1E1E1, stop: 0.4 #DDDDDD,
+                                 stop: 0.5 #D8D8D8, stop: 1.0 #D3D3D3);
+}
+
+/* QComboBox gets the "on" state when the popup is open */
+QComboBox:!editable:on, QComboBox::drop-down:editable:on {
+    background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
+                                stop: 0 #D3D3D3, stop: 0.4 #D8D8D8,
+                                stop: 0.5 #DDDDDD, stop: 1.0 #E1E1E1);
+}
+
+QComboBox:on { /* shift the text when the popup opens */
+    padding-top: 3px;
+    padding-left: 4px;
+}
+
+QComboBox::drop-down {
+    subcontrol-origin: padding;
+    subcontrol-position: top right;
+    width: 15px;
+    border-left-width: 1px;
+    border-left-style: solid; /* just a single line */
+    border-top-right-radius: 3px; /* same radius as the QComboBox */
+    border-bottom-right-radius: 3px;
+    padding:10px;
+}
+
+QComboBox::down-arrow {
+    image: url(/home/alai/GUI-Dev/lobe-clone/arrow-down-sign-to-navigate.png);
+    width: 14px;
+    height: 14px;
+    
+}
+
+QComboBox::down-arrow:on { /* shift the arrow when popup is open */
+    top: 1px;
+    left: 1px;
+}
+
+
+#classificationmodelselection:hover, #classificationimport:hover, #classificationview:hover, #learnmore:hover, #watchtour:hover {
     background-color: #b7b6bb;
 }
 
