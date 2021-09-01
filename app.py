@@ -89,6 +89,9 @@ class ClassificationWidget(QWidget):
 
     def __init__(self, parent=None) -> None:
         super(ClassificationWidget,self).__init__(parent)
+        self.model_store = {}
+        self.current_model = None
+        self.current_class = None
         self.widget()
 
     def widget(self):
@@ -109,21 +112,11 @@ class ClassificationWidget(QWidget):
         )
         title.setAlignment(Qt.AlignCenter)
 
-        model_selection = QComboBox(self)
-        model_selection.setObjectName('classificationmodelselection')
-        model_selection.addItem('Select Model')
-        model_selection.addItem('Test Model')
-        model_selection.setStyleSheet(
-            '''
-            #model_selection::down-arrow{
-                border : none;
-                border-radius: 10px;
-                background-color: #e7e6eb;
-            }
-            '''
-        )
+        self.model_selection = QComboBox(self)
+        self.model_selection.setObjectName('classificationmodelselection')
+        self.model_selection.addItem('Select Model')
+        self.model_selection.view().pressed.connect(self.handleComboItemPressed)
         
-
         view =  QPushButton('Predict', objectName='classificationview')
         _import = QPushButton('Import', objectName='classificationimport', 
             clicked= self.on_choose_btn_clicked)
@@ -135,7 +128,7 @@ class ClassificationWidget(QWidget):
         buttons_layout.addWidget(_import)
         buttons_layout.setSpacing(10)
         #classification_titlebar_layout.addWidget(title,1)
-        classification_titlebar_layout.addWidget(model_selection)
+        classification_titlebar_layout.addWidget(self.model_selection)
         classification_titlebar_layout.addWidget(title,1)
         classification_titlebar_layout.addLayout(buttons_layout, 0)
         
@@ -170,17 +163,18 @@ class ClassificationWidget(QWidget):
     @pyqtSlot()
     def on_choose_btn_clicked(self):
         
-        directory = QFileDialog.getExistingDirectory(
-            options=QFileDialog.DontUseNativeDialog
-        )
-        if directory:
-            self.clear_progress.emit(0)
-            self.start_loading(directory)
+        if (self.current_model and self.current_class) is not None:
+            directory = QFileDialog.getExistingDirectory(
+                options=QFileDialog.DontUseNativeDialog
+            )
+            if directory:
+                self.clear_progress.emit(0)
+                self.start_loading(directory)
+        else:
+            print(self.current_class, self.current_model)
+            print('Please select Model First')
 
-    @pyqtSlot()
-    def on_back_btn_clicked(self):
-        directory = os.path.dirname(self.path_le.text())
-        self.start_loading(directory)
+    
 
     def start_loading(self, directory):
         if self.timer_loading.isActive():
@@ -294,7 +288,45 @@ class ClassificationWidget(QWidget):
             )
             painter.drawText(self.correct_images_list.viewport().rect(), Qt.AlignCenter, elided_text)
             painter.restore()
+
+    def handleComboItemPressed(self, index):
+        #item = self.model_selection.model().itemFromIndex(index)
+        item = self.model_selection.model().itemData(index)
+        models = [key for key, _ in self.model_store.items()]
+        if item[0] == 'Select Model':
+            folderpath = QFileDialog.getExistingDirectory(self, 'Select Folder',
+                options=QFileDialog.DontUseNativeDialog
+            )
+            files = self.checkForModel(folderpath)
+            if files is not None:
+                model, classes = files
+                self.model_store[f'New Model {len(self.model_store)+1}'] = {'model_path':model, 'class_path': classes}
+                self.model_selection.addItem(f'New Model {len(self.model_store)}')
+                self.model_selection.setCurrentIndex(len(self.model_store))
+                self.current_model = model
+                self.current_class = classes 
+                
+
+        
+        elif item[0] in models:
+            self.current_model =  self.model_store[item[0]]['model_path']
+            self.current_class =  self.model_store[item[0]]['class_path']
             
+
+    def checkForModel(self, directory):
+        model_file, classes_file = None, None
+        for item in os.listdir(directory):
+            if item.endswith('.pb'):
+                model_file = os.path.join(directory,item)
+            if item.endswith('.pbtxt'):
+                classes_file = os.path.join(directory,item) 
+
+        if model_file is None:
+            print('No Model File Found')
+        elif classes_file is None:
+            print('No Classes File Found')
+        else :
+            return model_file, classes_file
 
 class MainWindow(QMainWindow):
 
@@ -419,6 +451,7 @@ class MainWindow(QMainWindow):
         side_bar.setLayout(menu_layout)
                 
         dock.setWidget(side_bar)
+        
 
     def addImageCountWidget(self, widgetname):
         images_count_widget = QWidget()

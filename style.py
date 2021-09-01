@@ -1,9 +1,7 @@
 #LabGrotesque,Helvetica Neue,Helvetica,Arial,sans-serif;
 #Franklin Gothic Medium;
 stylesheet = '''
-#classificationwidget {
-    background-color : #000000;
-}
+
 
 #correctlistwidget::item:selected {
             border: 2px solid #6a6ea9;
@@ -156,10 +154,31 @@ QComboBox::down-arrow:on { /* shift the arrow when popup is open */
 }
 
 
+
 #classificationmodelselection:hover, #classificationimport:hover, #classificationview:hover, #learnmore:hover, #watchtour:hover {
     background-color: #b7b6bb;
 }
 
+#classificationmodelselection::down-arrow{
+                border : none;
+                border-radius: 10px;
+            }
+#classificationmodelselection{
+    border:none;
+    border-radius: 10px;
+    outline:0px;
+
+}
+#classificationmodelselection::item:selected{
+    background-color: #00ddb2;
+    border-radius: 10px;
+    
+}
+#classificationmodelselection QAbstractItemView {
+    border: none;
+    border-radius: 10px;
+    background-color: white;
+}
 
 
 QScrollBar::handle:horizontal:hover,QScrollBar::handle:horizontal:pressed {
@@ -233,6 +252,8 @@ QScrollBar::handle:horizontal:hover,QScrollBar::handle:horizontal:pressed {
             border-radius: 5px;
         }
 
-        
+#classificationwidget {
+    background-color : #000000;
+}        
 
 '''
