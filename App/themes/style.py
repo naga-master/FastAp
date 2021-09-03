@@ -142,7 +142,7 @@ QComboBox::drop-down {
 }
 
 QComboBox::down-arrow {
-    image: url(/home/alai/GUI-Dev/lobe-clone/arrow-down-sign-to-navigate.png);
+    image: url(icons/downarrow.png);
     width: 14px;
     height: 14px;
     
@@ -213,47 +213,5 @@ QScrollBar::sub-line:horizontal, QScrollBar::sub-line:vertical {
     border-radius: 5px;
 }
 
-
-'''
-#border:none;
-'''
-QScrollBar::handle:horizontal:hover,QScrollBar::handle:horizontal:pressed {
-            background-color: #6a6ea9;
-
-        }
-
-        QScrollBar:horizontal, QScrollBar:vertical {              
-            border: none;
-            background:#34373c;
-            height:10px;
-            width: 10px;
-            margin: 0px 0px 0px 0px;
-        }
-        QScrollBar::handle:horizontal, QScrollBar::handle:vertical {
-            background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
-            stop: 0 rgb(64, 69, 75), stop: 0.5 rgb(64, 69, 75), stop:1 rgb(64, 69, 75));
-            min-height: 0px;
-            border-radius: 5px;
-        }
-        QScrollBar::add-line:horizontal, QScrollBar::add-line:veritcal {
-            background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
-            stop: 0 rgb(64, 69, 75), stop: 0.5 rrgb(64, 69, 75),  stop:1 rgb(64, 69, 75));
-            height: 0px;
-            subcontrol-position: bottom;
-            subcontrol-origin: margin;
-            border-radius: 5px;
-        }
-        QScrollBar::sub-line:horizontal, QScrollBar::sub-line:vertical {
-            background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
-            stop: 0  rgb(64, 69, 75), stop: 0.5 rgb(64, 69, 75),  stop:1 rgb(64, 69, 75));
-            height: 0 px;
-            subcontrol-position: top;
-            subcontrol-origin: margin;
-            border-radius: 5px;
-        }
-
-#classificationwidget {
-    background-color : #000000;
-}        
 
 '''

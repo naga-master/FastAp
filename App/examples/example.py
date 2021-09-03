@@ -3,7 +3,7 @@ from PyQt5.QtGui import QBrush, QColor, QFont, QIcon, QPainter, QPainterPath, QP
 from PyQt5.QtWidgets import QAbstractItemView, QApplication, QDesktopWidget, QDockWidget, QFormLayout, QGridLayout, QHBoxLayout, QLabel, QLayout, QListView, QListWidget, QListWidgetItem, QMainWindow, QProgressBar, QPushButton, QSizePolicy, QVBoxLayout, QWidget
 import sys
 from typing import List
-import style
+from App.themes import style
 
 class MainApp(QApplication):
     def __init__(self, argv) -> None:
@@ -64,7 +64,7 @@ class centralwidget(QWidget):
         )
         image_prediction_widget.setFixedHeight(30)
     
-        pixmap = QPixmap('/home/alai/GUI-Dev/lobe-clone/Lobe-Clone/Microsoft-Lobe.jpg')
+        pixmap = QPixmap('icons/Microsoft-Lobe.jpg')
         pixmap = pixmap.scaled(
             QSize(int(pixmap.height()*0.5),int(pixmap.width()*0.5)),
             Qt.KeepAspectRatio,
@@ -101,7 +101,7 @@ class MainWindow(QMainWindow):
 
     def __init__(self, parent=None)-> None:
         super(MainWindow, self).__init__(parent=parent)
-        self.setWindowTitle('Lobe-Clone_1')
+        self.setWindowTitle('Fastap')
         self._setlayout()
         self._createDockWidget()
         screen = QDesktopWidget().availableGeometry()
@@ -159,11 +159,11 @@ class MainWindow(QMainWindow):
         #                    listwidget.sizeHintForRow(0) * listwidget.count() + 2 * listwidget.frameWidth())
 
         label = QListWidgetItem('Label', listwidget)
-        label.setIcon(QIcon('edit.png'))
+        label.setIcon(QIcon('icons/edit.png'))
         train = QListWidgetItem('Train', listwidget)
-        train.setIcon(QIcon('tick_check_checked_checkbox_icon_177982.png'))
+        train.setIcon(QIcon('icons/tick_check_checked_checkbox_icon_177982.png'))
         use = QListWidgetItem('Use', listwidget)
-        use.setIcon(QIcon('3d-cube.png'))
+        use.setIcon(QIcon('icons/3d-cube.png'))
         listwidget.setSpacing(2)
         listwidget.setFocusPolicy(Qt.NoFocus)
         listwidget.setMaximumHeight(listwidget.count()*60)
