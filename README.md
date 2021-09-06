@@ -21,6 +21,7 @@ if you can't install in  linux or windows,  please try to install below dependen
 ```
 python3 -m pip install PyQt5
 python3 -m pip install opencv-python
+python3 -m pip install opencv-python-headless
 ```
 
 ### Run a Application
