@@ -112,6 +112,14 @@ QComboBox {
     padding: 10px;
 }
 
+QToolTip{
+  background-color: #FFFFFF;
+  border-radius: 3px;
+  border: 1px solid palette(highlight);
+  padding: 5px;
+  color: white;
+}
+
 #classificationview, #classificationimport, QComboBox:!editable, QComboBox::drop-down:editable {
      background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
                                  stop: 0 #E1E1E1, stop: 0.4 #DDDDDD,
@@ -212,6 +220,7 @@ QScrollBar::sub-line:horizontal, QScrollBar::sub-line:vertical {
     subcontrol-origin: margin;
     border-radius: 5px;
 }
+
 
 
 '''

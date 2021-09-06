@@ -1,9 +1,11 @@
 import os, glob
+from utils.infer import Inference
 from PyQt5.QtCore import QDir, QDirIterator, QSize, QTimer, \
 Qt, pyqtSignal, pyqtSlot
-from PyQt5.QtGui import QBrush, QColor,  QFontMetrics, QPainter,  QPixmap
+from PyQt5.QtGui import QBrush, QColor,  QFontMetrics, QPainter, QPalette,  QPixmap
 from PyQt5.QtWidgets import  QComboBox,  QFileDialog,  QHBoxLayout, QLabel, \
  QListView, QListWidget, QListWidgetItem,  QPushButton,  QVBoxLayout, QWidget
+
 
 class ClassificationWidget(QWidget):
     file_count = pyqtSignal(str, int)
@@ -14,6 +16,7 @@ class ClassificationWidget(QWidget):
         self.model_store = {}
         self.current_model = None
         self.current_class = None
+        self.detection = Inference()
         self.widget()
 
     def widget(self):
@@ -46,7 +49,7 @@ class ClassificationWidget(QWidget):
         view.setFocusPolicy(Qt.NoFocus)
         _import.setFocusPolicy(Qt.NoFocus)
         
-        buttons_layout.addWidget(view)
+        #buttons_layout.addWidget(view)
         buttons_layout.addWidget(_import)
         buttons_layout.setSpacing(10)
         #classification_titlebar_layout.addWidget(title,1)
@@ -66,12 +69,12 @@ class ClassificationWidget(QWidget):
         
         self.correct_images_list.setSpacing(10)
         self.correct_images_list.setSizeAdjustPolicy(QListWidget.AdjustToContents)
+        
         self.correct_images_list.setStyleSheet(
             '''
             background-color: transparent;
             '''
         )
-        
         classification_layout.addLayout(classification_titlebar_layout)
         #classification_layout.addWidget(correct_label)
         classification_layout.addWidget(self.correct_images_list,1)
@@ -123,7 +126,8 @@ class ClassificationWidget(QWidget):
             image_frame = QHBoxLayout()
             pixmap = QPixmap(filename)
             pixmap = pixmap.scaled(
-                QSize(int(pixmap.height()*0.2),int(pixmap.width()*0.2)),
+                #QSize(int(pixmap.height()*0.2),int(pixmap.width()*0.2)),
+                QSize(300,300),
                 Qt.KeepAspectRatio,
                 Qt.SmoothTransformation
             )
@@ -135,29 +139,37 @@ class ClassificationWidget(QWidget):
             painter.setRenderHint(QPainter.Antialiasing)
             painter.setBrush(QBrush(pixmap))
             painter.setPen(Qt.NoPen)
-            painter.drawRoundedRect(pixmap.rect(), pixmap.height()*0.035, pixmap.width()*0.035)
+            painter.drawRoundedRect(pixmap.rect(), pixmap.height()*0.035, pixmap.width()*0.035)  #Add rounded corners
             painter.end()
 
             image_prediction_widget = QLabel(image_widget)
+            #Analyse Model
+            results = self.detection.inference(filename)
+            tooltip = ''
+            for item in results: 
+                label, confidence = item
+                tooltip += f'<br>  {label} : {confidence}  </br>'
+
+            images_list.setToolTip(tooltip)
             
             
-            if image_prediction_widget.width()+100 < pixmap.width():
-                metrics = QFontMetrics(image_widget.font())
-                elided = metrics.elidedText(name, Qt.ElideRight, 100)
-                image_prediction_widget.setText(elided)
-                image_prediction_widget.setStyleSheet(
-                    '''
-                    background-color:#00ddb2;
-                    border:none;
-                    border-radius:7px;
-                    color:white;
-                    padding:3px;
-                    font-size:15px;
-                    font-weight: 400;
-                    '''
-                )
-                image_prediction_widget.move(10, int(pixmap.height() - (pixmap.height()*0.2)))
-                #image_prediction_widget.setGeometry(QRect(10, int(pixmap.height() - (pixmap.height()*0.3)), 120, 150))
+            #if image_prediction_widget.width()+100 < pixmap.width():
+            metrics = QFontMetrics(image_widget.font())
+            elided = metrics.elidedText(name, Qt.ElideRight, 100)
+            image_prediction_widget.setText(elided)
+            image_prediction_widget.setStyleSheet(
+                '''
+                background-color:#00ddb2;
+                border:none;
+                border-radius:7px;
+                color:white;
+                padding:3px;
+                font-size:15px;
+                font-weight: 400;
+                '''
+            )
+            image_prediction_widget.move(10, int(pixmap.height() - (pixmap.height()*0.2)))
+            #image_prediction_widget.setGeometry(QRect(10, int(pixmap.height() - (pixmap.height()*0.3)), 120, 150))
 
             image_widget.setPixmap(rounded)
             image_frame.addWidget(image_widget)
@@ -166,6 +178,7 @@ class ClassificationWidget(QWidget):
             self.correct_images_list.addItem(images_list)
             self.correct_images_list.setItemWidget(images_list, image_wrapping_widget)
             
+              
     @pyqtSlot(str, int)
     def load_images(self, directory):
         extensions = ['*.bmp', '*.gif', '*.jpg', '*.jpeg', '*.png', '*.pbm', '*.pgm', '*.ppm', '*.xbm', '*.xpm']
@@ -232,11 +245,13 @@ class ClassificationWidget(QWidget):
                 self.current_class = classes
                 self.placeholder_text =  "Model imported and Please select images by clicking import button"
                 self.title.setText(f'New Model {len(self.model_store)}')
+                self.detection.loadModel(model,classes)
             
         
         elif item[0] in models:
             self.current_model =  self.model_store[item[0]]['model_path']
             self.current_class =  self.model_store[item[0]]['class_path']
+            self.detection.loadModel(self.current_model, self.current_class)
             
 
     def checkForModel(self, directory):

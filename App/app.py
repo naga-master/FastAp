@@ -141,10 +141,10 @@ class MainWindow(QMainWindow):
         self.listwidget = QListWidget( objectName='listwidget')
         self.listwidget.itemClicked.connect(self.updateCentralWidget)
 
-        classification = QListWidgetItem('Image Classification', self.listwidget)
+        classification = QListWidgetItem('Inference', self.listwidget)
         classification.setIcon(QIcon('icons/tickbox.png'))
         
-        detection = QListWidgetItem('Object Detection', self.listwidget)
+        detection = QListWidgetItem('Label', self.listwidget)
         detection.setIcon(QIcon('icons/3d-cube.png'))
         analyze = QListWidgetItem('Analyze', self.listwidget)
         analyze.setIcon(QIcon('icons/edit.png'))
@@ -176,10 +176,6 @@ class MainWindow(QMainWindow):
         menu_layout.addWidget(information_box)
         menu_layout.setSpacing(0)
         menu_layout.setContentsMargins(0,0,0,0)
-
-        #menu_layout.addStretch()
-        #menu_layout.insertStretch(-1,1)
-        #menu_layout.addStretch()
         
         side_bar.setLayout(menu_layout)
                 
@@ -213,10 +209,10 @@ class MainWindow(QMainWindow):
 
     def updateCentralWidget(self, item):
         item = item.text()
-        if item == 'Image Classification':
+        if item == 'Inference':
             self.stackedWidget.setCurrentIndex(1)
             
-        elif item == 'Object Detection':
+        elif item == 'Label':
             self.stackedWidget.setCurrentIndex(2)
 
         elif item == 'Analyze':
